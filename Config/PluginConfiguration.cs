@@ -22,6 +22,11 @@ public class PluginConfiguration : BasePluginConfiguration
     public string Url { get; set; } = "";
     public bool EnableMixed { get; set; } = false;
     public bool ExtendLocalSeriesTrees { get; set; } = false;
+    /// <summary>Comma-separated Jellyfin series GUIDs eligible for local tree extension.</summary>
+    public string LocalSeriesTreeAllowlist { get; set; } = "";
+
+    public bool CanExtendLocalSeriesTree(Guid seriesId) =>
+        ExtendLocalSeriesTrees && LocalSeriesTreeScope.IsAllowed(LocalSeriesTreeAllowlist, seriesId);
     public bool FilterUnreleased { get; set; } = false;
     public int FilterUnreleasedBufferDays { get; set; } = 0;
     public bool DisableSourceCount { get; set; } = true;
@@ -241,6 +246,7 @@ public class UserConfig
             CatalogMaxItems = baseConfig.CatalogMaxItems,
             EnableMixed = baseConfig.EnableMixed,
             ExtendLocalSeriesTrees = baseConfig.ExtendLocalSeriesTrees,
+            LocalSeriesTreeAllowlist = baseConfig.LocalSeriesTreeAllowlist,
             FilterUnreleased = baseConfig.FilterUnreleased,
             FilterUnreleasedBufferDays = baseConfig.FilterUnreleasedBufferDays,
             HideUnplayedSearchTitles = baseConfig.HideUnplayedSearchTitles,

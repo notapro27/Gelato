@@ -128,7 +128,7 @@ public class InsertActionFilter(
     {
         var cfg = GelatoPlugin.Instance!.GetConfig(userId);
 
-        if (cfg.ExtendLocalSeriesTrees)
+        if (cfg.CanExtendLocalSeriesTree(series.Id))
         {
             if (manager.HasExtendedTree(series))
             {
@@ -158,7 +158,7 @@ public class InsertActionFilter(
                 .SyncSeriesTreesAsync(cfg, meta, ct, existingSeries: series)
                 .ConfigureAwait(false);
         }
-        else
+        else if (!cfg.ExtendLocalSeriesTrees)
         {
             // Setting disabled — clean any virtual items that may exist for this series
             manager.CleanVirtualTreeItem(series, ct);

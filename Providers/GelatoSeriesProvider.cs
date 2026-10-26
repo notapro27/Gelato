@@ -102,9 +102,10 @@ public sealed class GelatoSeriesProvider : IRemoteMetadataProvider<Series, Serie
         // Update cache before syncing
         _syncCache[series.Id] = now;
 
-        var isLocal = !series.IsGelato();
+        // A file-backed series can carry an old Stremio provider id; its path still makes it local.
+        var isLocal = series.IsFileProtocol || string.IsNullOrEmpty(series.Path);
 
-        if (isLocal && !cfg.ExtendLocalSeriesTrees)
+        if (isLocal && !cfg.CanExtendLocalSeriesTree(series.Id))
             return;
 
         // Guard against race condition: RefreshStarted fires inside RefreshMetadata (GelatoManager.cs:692)

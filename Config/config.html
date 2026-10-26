@@ -111,10 +111,15 @@
                   <span>Add missing seasons and episodes to your own series</span>
                 </label>
                 <div class="fieldDescription">
-                  Your own series also list the seasons and episodes you don't have on disk, and you can stream them.
-                  When you save a change, the <strong>Sync series trees</strong> task starts and adds them, or removes
-                  them when this is off.
+                  Only series whose Jellyfin IDs are explicitly listed below can be extended.
+                  An empty or invalid list prevents enabling this setting. Turning it off removes
+                  previously added virtual tree items.
                 </div>
+              </div>
+              <div class="inputContainer">
+                <label class="inputLabel inputLabelUnfocused" for="txtLocalSeriesTreeAllowlist">Allowed local series IDs:</label>
+                <input is="emby-input" type="text" id="txtLocalSeriesTreeAllowlist" class="emby-input" />
+                <div class="fieldDescription">Comma-separated Jellyfin series GUIDs. Keep this empty to disable local tree extension.</div>
               </div>
             </div>
 

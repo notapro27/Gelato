@@ -60,6 +60,7 @@ export default function (view) {
   const txtStreamTTL = page.querySelector('#txtStreamTTL');
   const chkEnableMixed = page.querySelector('#chkEnableMixed');
   const chkExtendLocalSeriesTrees = page.querySelector('#chkExtendLocalSeriesTrees');
+  const txtLocalSeriesTreeAllowlist = page.querySelector('#txtLocalSeriesTreeAllowlist');
   const chkAddonSearch = page.querySelector('#chkAddonSearch');
   const chkFilterUnreleased = page.querySelector('#chkFilterUnreleased');
   const txtBufferDays = page.querySelector('#txtBufferDays');
@@ -964,6 +965,7 @@ export default function (view) {
       if (txtStreamTTL) txtStreamTTL.value = cfg.StreamTTL || 3600;
       if (chkEnableMixed) chkEnableMixed.checked = cfg.EnableMixed ?? true;
       if (chkExtendLocalSeriesTrees) chkExtendLocalSeriesTrees.checked = cfg.ExtendLocalSeriesTrees ?? false;
+      if (txtLocalSeriesTreeAllowlist) txtLocalSeriesTreeAllowlist.value = cfg.LocalSeriesTreeAllowlist || '';
       // The setting says the opposite of the switch, as in the setup assistant.
       if (chkAddonSearch) chkAddonSearch.checked = !cfg.DisableSearch;
       if (chkFilterUnreleased) chkFilterUnreleased.checked = cfg.FilterUnreleased || false;
@@ -1010,6 +1012,7 @@ export default function (view) {
       cfg.StreamTTL = parseInt(txtStreamTTL.value) || 3600;
       cfg.EnableMixed = chkEnableMixed.checked;
       cfg.ExtendLocalSeriesTrees = chkExtendLocalSeriesTrees.checked;
+      cfg.LocalSeriesTreeAllowlist = txtLocalSeriesTreeAllowlist.value.trim();
 
       cfg.DisableSearch = !chkAddonSearch.checked;
       cfg.FilterUnreleased = chkFilterUnreleased.checked;
