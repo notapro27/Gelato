@@ -2562,6 +2562,10 @@ public sealed class GelatoManager(
         Folder? root = null
     )
     {
+        if (existingSeries is { } local && IsLocalSeries(local) &&
+            !cfg.CanExtendLocalSeriesTree(local.Id))
+            return null;
+
         // A catalog with a folder of its own creates its series there.
         var seriesRootFolder = root ?? cfg.SeriesFolder;
 
@@ -3322,6 +3326,7 @@ public sealed class GelatoManager(
                 .OfType<Series>()
                 .Where(s =>
                     !s.HasStremioId()
+                    && cfg.CanExtendLocalSeriesTree(s.Id)
                     && (
                         !string.IsNullOrWhiteSpace(s.GetProviderId("Imdb"))
                         || !string.IsNullOrWhiteSpace(s.GetProviderId("Tmdb"))
@@ -3426,7 +3431,8 @@ public sealed class GelatoManager(
             return;
 
         string[] showIds = ["Imdb", "Tmdb", "Tvdb"];
-        foreach (var local in allSeries.Where(s => !s.HasStremioId() && IsLocalSeries(s)))
+        foreach (var local in allSeries.Where(s => !s.HasStremioId() && IsLocalSeries(s) &&
+            (!cfg.ExtendLocalSeriesTrees || cfg.CanExtendLocalSeriesTree(s.Id))))
         {
             ct.ThrowIfCancellationRequested();
 
@@ -3496,6 +3502,7 @@ public sealed class GelatoManager(
             .OfType<Series>()
             .Where(s =>
                 !s.HasStremioId()
+                && cfg.CanExtendLocalSeriesTree(s.Id)
                 && s.Status != SeriesStatus.Continuing // continuing handled in pass 2
                 && (
                     !string.IsNullOrWhiteSpace(s.GetProviderId("Imdb"))
