@@ -13,7 +13,7 @@
 
 An independent, source-only technical and security assessment was conducted on draft Gelato PR #8 at exact immutable HEAD SHA `2815516e7bf04fbbc07c987129165ea00c143633`. PR #8 stacks the undated watched-state migration correction (upstream lostb1t#348 `713a84db503f5712832d323b1cfb4bd260af6156`) on top of the single-series tree scope allowlist (PR #5 `a985889b7cadbf8f15ea3e075c3919e9035aec9d`).
 
-The exact integration was verified to correctly fix the lab watched-state loss observed when legacy stream rows or virtual episodes contain `null` `LastPlayedDate` timestamps, without regressing the single-series allowlist security boundaries or modifying core Gelato behavior outside intended scope.
+Offline source/model checks support the intended correction for watched-state loss when source rows lack `LastPlayedDate`. Separately reported isolated Jellyfin 12.1.0 replacement testing at the same frozen target head observed successful undated two-user migration with nonnull default primary user data. Neither test proves the null-primary-return path safe or establishes production/client acceptance.
 
 **Verdict Rationale:** `PASS_WITH_CONDITIONS`
 - **PASS:** The source code implementation and synthetic model behavior strictly pass all functional, security, isolation, and regression checks offline. The upstream watched-state logic was integrated cleanly with zero unintended deviations, and the single-series allowlist remains strictly fail-closed.
@@ -79,7 +79,7 @@ The single-series tree allowlist implementation introduced in PR #5 remains inta
 | **Undated vs. Dated Conflict** | An undated source state cannot override a meaningful dated or undated local state. Conversely, a dated source cannot override a meaningful undated local state, as priority cannot be proven without timestamps. | **PASS** |
 | **Multi-User Isolation** | `AdoptWatchState` iterates over each Jellyfin user independently (`userDataManager.GetUserData(user, item)`), ensuring user progress and watch state decisions never cross user boundaries. | **PASS** |
 | **Idempotence** | Repeating `AdoptWatchState` on already adopted rows produces no state mutation or duplicate offset application because `local` primary item now possesses meaningful state matching or exceeding `source`. | **PASS** |
-| **Primary-Item Null Data** | If `userDataManager.GetUserData(user, primary)` returns `null` or empty data, `ShouldAdoptWatchState` returns `true` for any meaningful source state, instantiating primary user item data correctly. | **PASS** |
+| **Primary-Item Null Data** | If `userDataManager.GetUserData(user, primary)` returns `null`, `AdoptWatchState` skips adoption; it does **not** instantiate primary user data. In the separately reported isolated Jellyfin 12.1.0 replacement trial (Gelato PR #8 comment 6474328366), the new local E3 had no persisted UserData rows, but Jellyfin returned nonnull default objects and two users’ undated state migrated. Null-return reachability on other paths remains unproven. | **CONDITION / NOT PROVEN GLOBALLY** |
 | **Row Selection Among Multiple Candidates** | Candidates are filtered by `HasMeaningfulWatchState` and ordered descending by `LastPlayedDate ?? DateTime.MinValue`. The candidate with the latest timestamp (or first meaningful undated entry if all null) is selected. | **PASS** |
 | **Offset Arithmetic** | Timestamp assignment uses `sourceDate + Services.StreamUserDataSync.CopyOffset` (1 tick offset), ensuring the primary item is deterministically dated strictly after the stream row to establish lineage. | **PASS** |
 
@@ -108,3 +108,8 @@ The following mandatory live integration steps have **NOT** been performed durin
 PR #8 at HEAD SHA `2815516e7bf04fbbc07c987129165ea00c143633` successfully integrates upstream watched-state migration fix lostb1t#348 with single-series allowlist PR #5.
 
 **Recommendation:** Approve source logic under `PASS_WITH_CONDITIONS`. Require live Jellyfin 12.1.0 test environment run and Fire TV client verification before granting production deployment approval.
+
+
+## Post-publication owner adjudication — isolated runtime evidence (2026-10-28)
+
+This addendum corrects the earlier false null-primary claim without changing the reviewed Gelato source or Jules' original test results. Runtime evidence: https://github.com/notapro27/Gelato/pull/8#issuecomment-6474328366 ; owner correction: https://github.com/notapro27/Gelato/pull/10#issuecomment-6474604347 . In the bounded Jellyfin 12.1.0 synthetic lab, the new local episode had no persisted user-data rows but the Jellyfin API returned nonnull defaults; undated watched/resume states for two independent users migrated. This does not establish that `GetUserData(user, primary) == null` cannot arise in another path. For the separate timestamped episode, Jellyfin metadata refresh was required to assign episode indices before replacement completed; automatic discovery was not proven. Verdict remains **PASS_WITH_CONDITIONS for source/offline review and bounded synthetic runtime only**; null-primary behavior, metadata recognition, real providers, Fire TV, production recovery and separate release approvals remain gated. The original Jules independent assessment is not retrospectively expanded by this owner addendum.
