@@ -90,7 +90,15 @@ public class GelatoPlugin : BasePlugin<PluginConfiguration>, IHasWebPages
     public override void UpdateConfiguration(BasePluginConfiguration configuration)
     {
         var cfg = (PluginConfiguration)configuration;
-        var treesChanged = Configuration.ExtendLocalSeriesTrees != cfg.ExtendLocalSeriesTrees;
+        if (cfg.ExtendLocalSeriesTrees &&
+            !Config.LocalSeriesTreeScope.TryParse(cfg.LocalSeriesTreeAllowlist, out _))
+            throw new ArgumentException("Local tree extension requires a valid series allowlist.");
+        if (Configuration.ExtendLocalSeriesTrees && cfg.ExtendLocalSeriesTrees &&
+            !string.Equals(Configuration.LocalSeriesTreeAllowlist, cfg.LocalSeriesTreeAllowlist, StringComparison.Ordinal))
+            throw new ArgumentException("Disable local tree extension and complete cleanup before changing the allowlist.");
+
+        var treesChanged = Configuration.ExtendLocalSeriesTrees != cfg.ExtendLocalSeriesTrees ||
+            !string.Equals(Configuration.LocalSeriesTreeAllowlist, cfg.LocalSeriesTreeAllowlist, StringComparison.Ordinal);
         base.UpdateConfiguration(cfg);
 
         // Everything that came from the old configuration or the addon as it was: a changed
